@@ -1,0 +1,34 @@
+CREATE TABLE IF NOT EXISTS locations (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name TEXT NOT NULL,
+    address TEXT,
+    latitude DOUBLE PRECISION NOT NULL,
+    longitude DOUBLE PRECISION NOT NULL,
+    google_place_id TEXT UNIQUE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS media (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    url TEXT NOT NULL,
+    type TEXT NOT NULL, -- 'image', 'video'
+    activity_id UUID REFERENCES activities(id) ON DELETE CASCADE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+ALTER TABLE activities ADD COLUMN IF NOT EXISTS location_id UUID REFERENCES locations(id) ON DELETE SET NULL;
+
+CREATE TABLE IF NOT EXISTS share_tokens (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    trip_id UUID NOT NULL REFERENCES trips(id) ON DELETE CASCADE,
+    token TEXT NOT NULL UNIQUE,
+    expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS user_devices (
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    device_token TEXT NOT NULL,
+    last_updated TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (user_id, device_token)
+);

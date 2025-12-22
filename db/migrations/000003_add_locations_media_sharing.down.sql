@@ -1,0 +1,5 @@
+DROP TABLE IF EXISTS user_devices;
+DROP TABLE IF EXISTS share_tokens;
+ALTER TABLE activities DROP COLUMN IF EXISTS location_id;
+DROP TABLE IF EXISTS media;
+DROP TABLE IF EXISTS locations;

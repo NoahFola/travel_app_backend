@@ -1,0 +1,3 @@
+DROP TABLE IF EXISTS activities;
+DROP TABLE IF EXISTS itineraries;
+DROP TABLE IF EXISTS trips;
