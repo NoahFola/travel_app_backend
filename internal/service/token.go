@@ -36,7 +36,7 @@ func GenerateTokens(userID string) (string, string, error) {
 		UserID: userID,
 		Type:   AccessToken,
 		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(15 * time.Minute)),
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(120 * time.Minute)),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
 			Issuer:    "travel-app",
 		},

@@ -54,7 +54,7 @@ func (h *TripHandler) CreateTrip(c *gin.Context) {
 }
 
 func (h *TripHandler) GetTrip(c *gin.Context) {
-	id := c.Param("id")
+	id := c.Param("tripId")
 	trip, err := h.Service.GetTrip(c.Request.Context(), id)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "trip not found"})
@@ -80,7 +80,7 @@ func (h *TripHandler) ListMyTrips(c *gin.Context) {
 }
 
 func (h *TripHandler) UpdateTrip(c *gin.Context) {
-	id := c.Param("id")
+	id := c.Param("tripId")
 	var req updateTripRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -113,7 +113,7 @@ func (h *TripHandler) UpdateTrip(c *gin.Context) {
 }
 
 func (h *TripHandler) DeleteTrip(c *gin.Context) {
-	id := c.Param("id")
+	id := c.Param("tripId")
 	if err := h.Service.DeleteTrip(c.Request.Context(), id); err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "trip not found"}) // Assume 404 for simplicity
 		return
@@ -122,7 +122,7 @@ func (h *TripHandler) DeleteTrip(c *gin.Context) {
 }
 
 func (h *TripHandler) ShareTrip(c *gin.Context) {
-	tripID := c.Param("id")
+	tripID := c.Param("tripId")
 	// Verify ownership is usually done here or in service.
 	// For MVP, assuming if you can hit this endpoint with auth, you might check inside Service or Repo if userID matches.
 	// But TripService.GenerateShareToken doesn't check UserID currently.

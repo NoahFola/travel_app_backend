@@ -35,7 +35,7 @@ type updateActivityRequest struct {
 }
 
 func (h *ActivityHandler) CreateActivity(c *gin.Context) {
-	itineraryID := c.Param("itineraryId")
+	itineraryID := c.Param("id")
 	var req createActivityRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -105,7 +105,7 @@ func (h *ActivityHandler) CreateActivity(c *gin.Context) {
 }
 
 func (h *ActivityHandler) ListActivities(c *gin.Context) {
-	itineraryID := c.Param("itineraryId")
+	itineraryID := c.Param("id")
 	activities, err := h.Service.ListActivities(c.Request.Context(), itineraryID)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})

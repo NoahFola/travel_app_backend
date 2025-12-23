@@ -24,6 +24,7 @@ func (r *TripRepository) Create(ctx context.Context, trip *domain.Trip) error {
 		RETURNING id, created_at, updated_at`
 
 	err := r.DB.QueryRow(ctx, query, trip.UserID, trip.Location, trip.StartDate, trip.EndDate).Scan(&trip.ID, &trip.CreatedAt, &trip.UpdatedAt)
+	print("Trip created: ", trip.ID)
 	if err != nil {
 		return err
 	}

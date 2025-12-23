@@ -70,46 +70,56 @@ func NewRouter(db *pgxpool.Pool) *gin.Engine {
 
 		// User Routes (Protected)
 		users := v1.Group("/users")
-		// Add Auth Middleware here
+		users.Use(middleware.AuthMiddleware())
 		{
 			users.POST("/device-token", userHandler.RegisterDevice)
 		}
 
 		// Trips Routes
+		// Trips Routes
 		trips := v1.Group("/trips")
+		trips.Use(middleware.AuthMiddleware())
 		{
-			// Need Auth Middleware here ideally
 			trips.POST("", tripHandler.CreateTrip)
 			trips.GET("", tripHandler.ListMyTrips)
-			trips.GET("/:id", tripHandler.GetTrip)
-			trips.PUT("/:id", tripHandler.UpdateTrip)
-			trips.DELETE("/:id", tripHandler.DeleteTrip)
 
-			// Nested Itineraries
-			trips.POST("/:tripId/itineraries", itineraryHandler.CreateItinerary)
-			trips.GET("/:tripId/itineraries", itineraryHandler.ListItineraries)
+			trip := trips.Group("/:tripId")
+			{
+				trip.GET("", tripHandler.GetTrip)
+				trip.PUT("", tripHandler.UpdateTrip)
+				trip.DELETE("", tripHandler.DeleteTrip)
 
-			// Sharing
-			trips.POST("/:id/share", tripHandler.ShareTrip)
+				// Sharing
+				trip.POST("/share", tripHandler.ShareTrip)
+
+				// Itineraries under a trip
+				itineraries := trip.Group("/itineraries")
+				{
+					itineraries.POST("", itineraryHandler.CreateItinerary)
+					itineraries.GET("", itineraryHandler.ListItineraries)
+				}
+			}
 		}
 
 		// Public Routes for Preview
 		v1.GET("/preview/:token", tripHandler.GetSharedTrip)
 
 		// Itineraries Routes (Direct access or strictly nested? User asked for /itineraries/{id}/activities)
-		itineraries := v1.Group("/itineraries")
+		itineraries := v1.Group("/itineraries/:id")
+		itineraries.Use(middleware.AuthMiddleware())
 		{
-			itineraries.GET("/:id", itineraryHandler.GetItinerary)
-			itineraries.PUT("/:id", itineraryHandler.UpdateItinerary)
-			itineraries.DELETE("/:id", itineraryHandler.DeleteItinerary)
+			itineraries.GET("", itineraryHandler.GetItinerary)
+			itineraries.PUT("", itineraryHandler.UpdateItinerary)
+			itineraries.DELETE("", itineraryHandler.DeleteItinerary)
 
 			// Nested Activities
-			itineraries.POST("/:itineraryId/activities", activityHandler.CreateActivity)
-			itineraries.GET("/:itineraryId/activities", activityHandler.ListActivities)
+			itineraries.POST("/activities", activityHandler.CreateActivity)
+			itineraries.GET("/activities", activityHandler.ListActivities)
 		}
 
 		// Activities Routes
 		activities := v1.Group("/activities")
+		activities.Use(middleware.AuthMiddleware())
 		{
 			activities.GET("/:id", activityHandler.GetActivity)
 			activities.PUT("/:id", activityHandler.UpdateActivity)
@@ -118,12 +128,14 @@ func NewRouter(db *pgxpool.Pool) *gin.Engine {
 
 		// Location Routes
 		locations := v1.Group("/locations")
+		locations.Use(middleware.AuthMiddleware())
 		{
 			locations.GET("/search", locationHandler.Search)
 		}
 
 		// Media Routes
 		media := v1.Group("/media")
+		media.Use(middleware.AuthMiddleware())
 		{
 			media.POST("/upload", mediaHandler.Upload)
 		}

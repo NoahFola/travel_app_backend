@@ -3,9 +3,11 @@ package middleware
 import (
 	"log"
 	"net/http"
+	"strings"
 	"sync"
 	"time"
 
+	"github.com/NoahFola/travel_app_backend/internal/service"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/time/rate"
 )
@@ -56,6 +58,32 @@ func RateLimit(limiter *IPRateLimiter) gin.HandlerFunc {
 			c.AbortWithStatusJSON(http.StatusTooManyRequests, gin.H{"error": "too many requests"})
 			return
 		}
+		c.Next()
+	}
+}
+
+// AuthMiddleware verifies the JWT token
+func AuthMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		authHeader := c.GetHeader("Authorization")
+		if authHeader == "" {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+			return
+		}
+
+		tokenString := strings.TrimPrefix(authHeader, "Bearer ")
+		if tokenString == authHeader {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "invalid auth header format"})
+			return
+		}
+
+		claims, err := service.ValidateToken(tokenString)
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "invalid token: " + err.Error()})
+			return
+		}
+
+		c.Set("userID", claims.UserID)
 		c.Next()
 	}
 }
