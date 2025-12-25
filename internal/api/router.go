@@ -5,6 +5,7 @@ import (
 	"github.com/NoahFola/travel_app_backend/internal/middleware"
 	"github.com/NoahFola/travel_app_backend/internal/repository"
 	"github.com/NoahFola/travel_app_backend/internal/service"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"golang.org/x/time/rate"
@@ -14,6 +15,12 @@ import (
 func NewRouter(db *pgxpool.Pool) *gin.Engine {
 	r := gin.New() // Use New() to skip default middlewares
 	r.Use(gin.Recovery())
+
+	// CORS Configuration
+	config := cors.DefaultConfig()
+	config.AllowAllOrigins = true
+	config.AllowHeaders = []string{"Origin", "Content-Length", "Content-Type", "Authorization"}
+	r.Use(cors.New(config))
 
 	// Rate Limiter: 20 requests per second with burst of 50
 	limiter := middleware.NewIPRateLimiter(rate.Limit(20), 50)

@@ -15,11 +15,11 @@ type AuthService struct {
 	Repo *repository.UserRepository
 }
 
-func (s *AuthService) Register(ctx context.Context, email, password string) (string, string, error) {
+func (s *AuthService) Register(ctx context.Context, email, password, name string) (string, string, domain.User, error) {
 	// 1. Hash Password
 	hashed, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
-		return "", "", err
+		return "", "", domain.User{}, err
 	}
 	hashStr := string(hashed)
 
@@ -27,33 +27,43 @@ func (s *AuthService) Register(ctx context.Context, email, password string) (str
 	user := &domain.User{
 		Email:        &email,
 		PasswordHash: &hashStr,
+		FullName:     &name,
 	}
 
 	if err := s.Repo.Create(ctx, user); err != nil {
-		return "", "", err // Likely duplicate email
+		return "", "", domain.User{}, err // Likely duplicate email
 	}
 
 	// 3. Generate Tokens
-	return GenerateTokens(user.ID)
+	accessToken, RefreshToken, err := GenerateTokens(user.ID)
+	if err != nil {
+		return "", "", domain.User{}, err
+	}
+	return accessToken, RefreshToken, *user, nil
 }
 
-func (s *AuthService) Login(ctx context.Context, email, password string) (string, string, error) {
+func (s *AuthService) Login(ctx context.Context, email, password string) (string, string, domain.User, error) {
 	// 1. Find User
 	user, err := s.Repo.GetByEmail(ctx, email)
 	if err != nil {
-		return "", "", errors.New("invalid credentials")
+		return "", "", domain.User{}, errors.New("invalid credentials")
 	}
 
 	// 2. Check Password
 	if user.PasswordHash == nil {
-		return "", "", errors.New("user uses OAuth")
+		return "", "", domain.User{}, errors.New("user uses OAuth")
 	}
 	if err := bcrypt.CompareHashAndPassword([]byte(*user.PasswordHash), []byte(password)); err != nil {
-		return "", "", errors.New("invalid credentials")
+		return "", "", domain.User{}, errors.New("invalid credentials")
 	}
 
 	// 3. Generate Tokens
-	return GenerateTokens(user.ID)
+
+	accessToken, RefreshToken, err := GenerateTokens(user.ID)
+	if err != nil {
+		return "", "", domain.User{}, err
+	}
+	return accessToken, RefreshToken, *user, nil
 }
 
 func (s *AuthService) RefreshToken(oldRefreshToken string) (string, error) {

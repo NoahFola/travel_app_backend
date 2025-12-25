@@ -9,7 +9,7 @@ type User struct {
 	Email          *string    `json:"email"` // Pointer because it can be null (OAuth)
 	EmailVerified  bool       `json:"email_verified"`
 	PasswordHash   *string    `json:"-"` // Pointer (null if OAuth)
-	FullName       *string    `json:"full_name"`
+	FullName       *string    `json:"name"`
 	AvatarURL      *string    `json:"avatar_url"`
 	AuthProvider   string     `json:"auth_provider"`
 	ProviderUserID *string    `json:"provider_user_id"`
